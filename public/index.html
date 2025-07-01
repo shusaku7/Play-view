@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>動画ダウンロード＆再生</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>動画ダウンロード＆再生</h1>
+
+  <div class="input-container">
+    <input type="text" id="urlInput" placeholder="YouTubeのURLを入力" />
+    <button onclick="downloadAndPlay()">Play</button>
+  </div>
+
+  <!-- 🔄 ローディングスピナー -->
+  <div id="loadingSpinner" class="spinner hidden"></div>
+
+  <div id="playerTab">
+    <button id="closePlayer" onclick="closePlayer()">×</button>
+    <video id="videoPlayer" controls></video>
+    <a id="downloadBtn" href="#" download>
+      <button class="download-button">Download</button>
+    </a>
+  </div>
+
+  <script>
+    const playerTab = document.getElementById("playerTab");
+    const videoPlayer = document.getElementById("videoPlayer");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const spinner = document.getElementById("loadingSpinner");
+
+    async function downloadAndPlay() {
+      const url = document.getElementById("urlInput").value;
+      if (!url) return alert("URLを入力してください");
+
+      spinner.classList.remove("hidden");
+
+      const res = await fetch('/download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url })
+      });
+
+      spinner.classList.add("hidden");
+
+      const data = await res.json();
+      if (data.url) {
+        videoPlayer.src = data.url;
+        downloadBtn.href = data.url;
+        playerTab.classList.add("open");
+        videoPlayer.play();
+      }
+    }
+
+    function closePlayer() {
+      videoPlayer.pause();
+      playerTab.classList.remove("open");
+    }
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
