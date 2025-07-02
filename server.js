@@ -22,7 +22,6 @@ app.post('/download', async (req, res) => {
     await youtubedl(url, {
       output: outputPath,
       format: 'mp4',
-      exec: 'ffmpeg',
     });
 
     res.json({ path: 'videos/output.mp4' });
