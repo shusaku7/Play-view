@@ -1,7 +1,7 @@
 const express = require('express');
-const youtubedl = require('youtube-dl-exec');
 const fs = require('fs');
 const path = require('path');
+const youtubedl = require('youtube-dl-exec');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -9,10 +9,7 @@ const port = process.env.PORT || 3000;
 app.use(express.static('public'));
 app.use(express.json());
 
-// 動画の保存先フォルダ
 const videosDir = path.join(__dirname, 'videos');
-
-// フォルダがなければ作成
 if (!fs.existsSync(videosDir)) {
   fs.mkdirSync(videosDir);
 }
@@ -24,7 +21,8 @@ app.post('/download', async (req, res) => {
   try {
     await youtubedl(url, {
       output: outputPath,
-      format: 'mp4'
+      format: 'mp4',
+      exec: 'ffmpeg',
     });
 
     res.json({ path: 'videos/output.mp4' });
