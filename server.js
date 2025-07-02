@@ -1,45 +1,43 @@
 const express = require('express');
-const cors = require('cors');
-const { exec } = require('child_process');
-const path = require('path');
+const youtubedl = require('youtube-dl-exec');
 const fs = require('fs');
+const path = require('path');
 
 const app = express();
-const PORT = 3000;
+const port = process.env.PORT || 3000;
 
-app.use(cors());
-app.use(express.json());
 app.use(express.static('public'));
+app.use(express.json());
 
-const DOWNLOAD_DIR = path.join(__dirname, 'videos');
-if (!fs.existsSync(DOWNLOAD_DIR)) {
-  fs.mkdirSync(DOWNLOAD_DIR);
+// 動画の保存先フォルダ
+const videosDir = path.join(__dirname, 'videos');
+
+// フォルダがなければ作成
+if (!fs.existsSync(videosDir)) {
+  fs.mkdirSync(videosDir);
 }
 
-app.post('/download', (req, res) => {
-  const { url } = req.body;
-  if (!url) return res.status(400).json({ error: 'URLが必要です' });
+app.post('/download', async (req, res) => {
+  const url = req.body.url;
+  const outputPath = path.join(videosDir, 'output.mp4');
 
-  const id = Date.now();
-  const output = path.join(DOWNLOAD_DIR, `${id}.mp4`);
-  const command = `yt-dlp -f mp4 -o "${output}" "${url}"`;
+  try {
+    await youtubedl(url, {
+      output: outputPath,
+      format: 'mp4'
+    });
 
-  exec(command, (error, stdout, stderr) => {
-    if (error) {
-      console.error('ダウンロードエラー:', stderr);
-      return res.status(500).json({ error: '動画のダウンロードに失敗しました' });
-    }
-
-    const videoPath = `/videos/${id}.mp4`;
-    res.json({ url: videoPath });
-  });
+    res.json({ path: 'videos/output.mp4' });
+  } catch (error) {
+    console.error('動画の取得エラー:', error);
+    res.status(500).send('動画の取得に失敗しました');
+  }
 });
 
-app.use('/videos', express.static(DOWNLOAD_DIR));
-
-app.listen(PORT, () => {
-  console.log(`サーバー起動中: http://localhost:${PORT}`);
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
+
 
 
 
